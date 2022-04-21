@@ -45,46 +45,48 @@ def process_finger_images(images_dir, frame_rate):
     return ts
 
 
-def plot_timeseries(ts):
-    plt.plot(ts['time'], ts['red'], 'r--')
-    plt.plot(ts['time'], ts['red_ema'], 'k.')
-    plt.grid(visible=True)
-    plt.show()
+def plot_timeseries(ts, *cols):
+    """ By default, prints all the colors, the cols is the bonus abbreviation"""
 
-    plt.plot(ts['time'], ts['green'], 'g--')
-    plt.plot(ts['time'], ts['green_ema'], 'k.')
-    plt.show()
-
-    plt.plot(ts['time'], ts['blue'], 'b--')
-    plt.plot(ts['time'], ts['blue_ema'], 'k.')
-    plt.show()
-    print(1)
+    for color in ['red', 'green', 'blue']:
+        for column in cols:
+            plt.grid(visible=True)
+            plt.step(ts['time'], ts[color], 'r--')
+            plt.step(ts['time'], ts[color + '_' + column], 'k--')
+            plt.show()
 
 
-def get_fft(ts, frame_rate):
+def plot_fft(ts, frame_rate):
     # Number of sample points
     N = ts.shape[0]
     # sample spacing
     T = 1.0 / frame_rate
     xf = fftfreq(N, T)[:N // 2]
 
-    y_red = ts['red']
+    y_red = ts['red_ema']
     yf_red = fft(np.array(y_red))
     plt.plot(xf, 2.0 / N * np.abs(yf_red[0:N // 2]))
     plt.grid()
     plt.show()
 
-    y_green = ts['green']
+    y_green = ts['green_ema']
     yf_green = fft(np.array(y_green))
     plt.plot(xf, 2.0 / N * np.abs(yf_green[0:N // 2]))
     plt.grid()
     plt.show()
 
-    y_blue = ts['blue']
+    y_blue = ts['blue_ema']
     yf_blue = fft(np.array(y_blue))
     plt.plot(xf, 2.0 / N * np.abs(yf_blue[0:N // 2]))
     plt.grid()
     plt.show()
+
+
+def plot_derivative(ts):
+    ts['red_d'] = ts['red'].diff()/ts['time'].diff()
+    ts['green_d'] = ts['green'].diff()/ts['time'].diff()
+    ts['blue_d'] = ts['blue'].diff()/ts['time'].diff()
+    plot_timeseries(ts, 'd')
 
 
 if __name__ == "__main__":
@@ -92,5 +94,6 @@ if __name__ == "__main__":
     frame_rate = 30
     # convert_video_to_images("data/examples/BPM81OX97FR30.mp4", frame_rate)
     ts = process_finger_images("data/examples/BPM68OX97FR30/", frame_rate)
-    get_fft(ts, frame_rate)
+    # plot_fft(ts, frame_rate)
+    plot_derivative(ts)
 
