@@ -6,7 +6,7 @@ import directories
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
-
+from scipy import signal
 
 def convert_video_to_images(video_path, frame_rate):
     split_path = video_path.split('/')
@@ -82,6 +82,9 @@ def plot_fft(ts, frame_rate):
     plt.show()
 
 
+def plot_ifft():
+    pass
+
 def plot_derivative(ts):
     ts['red_d'] = ts['red'].diff()/ts['time'].diff()
     ts['green_d'] = ts['green'].diff()/ts['time'].diff()
@@ -89,11 +92,24 @@ def plot_derivative(ts):
     plot_timeseries(ts, 'd')
 
 
+def plot_periodogram(ts, frame_rate):
+    f, Pxx_den = signal.periodogram(ts['red'], frame_rate, 'flattop', scaling='spectrum')
+    plt.semilogy(f, Pxx_den)
+    # plt.ylim([1e-7, 1e2])
+    plt.xlabel('frequency [Hz]')
+    plt.ylabel('PSD [V**2/Hz]')
+    plt.show()
+
+def find_peaks():
+    from scipy.signal import find_peaks
+    peaks, _ = find_peaks(x, height=0)
+
+
 if __name__ == "__main__":
     directories.change_dir_to_main()
     frame_rate = 30
-    # convert_video_to_images("data/examples/BPM81OX97FR30.mp4", frame_rate)
-    ts = process_finger_images("data/examples/BPM68OX97FR30/", frame_rate)
+    convert_video_to_images("data/examples/BPM75OX97FR30.mp4", frame_rate)
+    # ts = process_finger_images("data/examples/BPM68OX97FR30/", frame_rate)
     # plot_fft(ts, frame_rate)
-    plot_derivative(ts)
-
+    # plot_derivative(ts)
+    # plot_periodogram(ts, frame_rate)

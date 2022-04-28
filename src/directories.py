@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 
 project_dir = Path(os.path.abspath(__file__)).parent.parent
+face_68_model_dir = "models/shape_predictor_68_face_landmarks.dat"
 
 
 def change_dir_to_main(destination=project_dir):
