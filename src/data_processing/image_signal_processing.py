@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 from scipy import signal
 
+
 def convert_video_to_images(video_path, frame_rate):
     split_path = video_path.split('/')
     save_path = '/'.join(split_path[:-1]) + '/' + split_path[-1].replace('.mp4', '')
@@ -23,18 +24,16 @@ def convert_video_to_images(video_path, frame_rate):
     print('Images created.')
 
 
-def process_finger_images(images_dir, frame_rate):
-
+def process_finger_image(images_dir, frame_rate):
+    filenames = next(walk(images_dir), (None, None, []))[2]
     period = 1/frame_rate
 
-    filenames = next(walk(images_dir), (None, None, []))[2]
     averages = []
     for img_name in filenames:
         img = io.imread(images_dir + img_name, as_gray=False)
-        mean_red = img[:, :, 0].mean()
-        mean_green = img[:, :, 1].mean()
-        mean_blue = img[:, :, 2].mean()
-        averages.append([mean_red, mean_green, mean_blue])
+        mean_rgb = get_mean_rgb(img)
+
+        averages.append([mean_rgb[0], mean_rgb[1], mean_rgb[2]])
 
     ts = pd.DataFrame(averages)  # time series
     ts.columns = ['red', 'green', 'blue']
@@ -43,6 +42,15 @@ def process_finger_images(images_dir, frame_rate):
     ts['blue_ema'] = ts['green'].ewm(span=13).mean()
     ts.insert(0, 'time', ts.index * period)
     return ts
+
+
+def get_mean_rgb(img):
+
+    mean_red = img[:, :, 0].mean()
+    mean_green = img[:, :, 1].mean()
+    mean_blue = img[:, :, 2].mean()
+
+    return  mean_red, mean_green, mean_blue
 
 
 def plot_timeseries(ts, *cols):
@@ -85,6 +93,7 @@ def plot_fft(ts, frame_rate):
 def plot_ifft():
     pass
 
+
 def plot_derivative(ts):
     ts['red_d'] = ts['red'].diff()/ts['time'].diff()
     ts['green_d'] = ts['green'].diff()/ts['time'].diff()
@@ -99,6 +108,7 @@ def plot_periodogram(ts, frame_rate):
     plt.xlabel('frequency [Hz]')
     plt.ylabel('PSD [V**2/Hz]')
     plt.show()
+
 
 def find_peaks():
     from scipy.signal import find_peaks
