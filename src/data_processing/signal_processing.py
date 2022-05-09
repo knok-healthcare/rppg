@@ -16,10 +16,15 @@ def plot_timeseries(ts, *cols):
     """ By default, prints all the colors, the cols is the bonus abbreviation"""
 
     for color in ['red', 'green', 'blue']:
-        for column in cols:
+        if len(cols) > 0:
+            for column in cols:
+                plt.grid(visible=True)
+                plt.step(ts['time'], ts[color], 'r--')
+                plt.step(ts['time'], ts[color + '_' + column], 'k--')
+                plt.show()
+        else:
             plt.grid(visible=True)
             plt.step(ts['time'], ts[color], 'r--')
-            plt.step(ts['time'], ts[color + '_' + column], 'k--')
             plt.show()
 
 

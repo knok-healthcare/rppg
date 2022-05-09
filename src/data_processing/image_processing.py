@@ -71,8 +71,6 @@ def process_face_video(images, frame_rate):
     averages_right_roi = []
     for img in images:
         roi_left, roi_right = get_roi_images(face_detector, landmark_detector, img)
-        cv2.imshow("Face landmark result", roi_left)
-        cv2.imshow("Face landmark result", roi_right)
         mean_rgb_left = get_mean_rgb(roi_left)
         mean_rgb_right = get_mean_rgb(roi_right)
 
@@ -137,4 +135,5 @@ if __name__ == "__main__":
 
     frame_rate = 30
     images = convert_video_to_images('data/examples/face/BPM72OX97FR30.mp4')
-    process_face_video(images, 30)
+    ts_left, ts_right = process_face_video(images, 30)
+    print(1)
