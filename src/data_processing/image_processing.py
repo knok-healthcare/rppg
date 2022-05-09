@@ -1,14 +1,15 @@
 import dlib, cv2
 import numpy as np
+
 import directories
 import pandas as pd
-from skimage import io
-from os import walk, path, makedirs
+from os import path, makedirs
+from PIL import Image
 
 # Landmark's numbers according to dlib's 68 model
 roi_landmarks = {'left_eye_left': 36,
-                 'left_eye_right': 39,
-                 'right_eye_left': 42,
+                 'left_eye_right': 38,
+                 'right_eye_left': 43,
                  'right_eye_right': 45,
                  'nose_mid': 29,
                  'nose_tip': 33}
@@ -70,7 +71,6 @@ def process_face_video(images, frame_rate):
     averages_right_roi = []
     for img in images:
         roi_left, roi_right = get_roi_images(face_detector, landmark_detector, img)
-
         cv2.imshow("Face landmark result", roi_left)
         cv2.imshow("Face landmark result", roi_right)
         mean_rgb_left = get_mean_rgb(roi_left)
@@ -125,13 +125,10 @@ def get_roi_images(face_detector, landmark_detector, image):
     face_rectangle = dlib.rectangle(int(face.left()), int(face.top()), int(face.right()), int(face.bottom()))
     detected_landmarks = landmark_detector(image, face_rectangle)
     draw_points(image, detected_landmarks)
-    cv2.imshow("Face landmark result", image)
 
     roi_coords = get_roi_coordinates(detected_landmarks)
-    left_roi = image[roi_coords['left_1']:roi_coords['left_2'],
-               roi_coords['top']:roi_coords['bottom']]  # todo this does not work properly yet
-    right_roi = image[roi_coords['right_1']:roi_coords['right_2'], roi_coords['top']:roi_coords['bottom']]
-
+    left_roi = image[roi_coords['top']:roi_coords['bottom'],roi_coords['left_1']:roi_coords['left_2']]
+    right_roi = image[roi_coords['top']:roi_coords['bottom'],roi_coords['right_1']:roi_coords['right_2']]
     return left_roi, right_roi
 
 
@@ -139,5 +136,5 @@ if __name__ == "__main__":
     directories.change_dir_to_main()
 
     frame_rate = 30
-    process_face_video(convert_video_to_images('data/examples/face/BPM72OX97FR30.mp4'), 30)
-
+    images = convert_video_to_images('data/examples/face/BPM72OX97FR30.mp4')
+    process_face_video(images, 30)

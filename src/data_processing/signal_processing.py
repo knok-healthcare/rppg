@@ -9,6 +9,7 @@ def get_ema(ts):
     ts['red_ema'] = ts['red'].ewm(span=13).mean()  # Exponential moving average
     ts['green_ema'] = ts['green'].ewm(span=13).mean()
     ts['blue_ema'] = ts['blue'].ewm(span=13).mean()
+    return ts
 
 
 def plot_timeseries(ts, *cols):
