@@ -25,5 +25,5 @@ if __name__ == "__main__":
     directories.change_dir_to_main()
 
     frame_rate = 30
-    video_dir = 'data/examples/finger/BPM70OX97FR30.mp4'
+    video_dir = 'data/examples/finger/BPM70T10.mp4'
     print(get_heart_rate(video_dir, frame_rate))

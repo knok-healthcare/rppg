@@ -50,9 +50,9 @@ def process_finger_video(images, frame_rate):
 
     ts = pd.DataFrame(averages)  # time series
     ts.columns = ['red', 'green', 'blue']
-    ts['red_ema'] = ts['red'].ewm(span=13).mean()  # Exponential moving average
-    ts['green_ema'] = ts['green'].ewm(span=13).mean()
-    ts['blue_ema'] = ts['green'].ewm(span=13).mean()
+    # ts['red_ema'] = ts['red'].ewm(span=13).mean()  # Exponential moving average
+    # ts['green_ema'] = ts['green'].ewm(span=13).mean()
+    # ts['blue_ema'] = ts['green'].ewm(span=13).mean()
     ts.insert(0, 'time', ts.index * period)
     return ts
 
