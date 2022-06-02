@@ -57,6 +57,34 @@ def process_finger_video(images, frame_rate):
     return ts
 
 
+def process_finger_video_in_parts(images, frame_rate: int, parts: int) -> []:
+    """ Split video vertically into equal parts to produce average for each. This will result in multiple signals. """
+    period = 1 / frame_rate
+    height = images[0].shape[0]
+    part_height = int(height / parts)
+
+    part_averages = {}
+    for part in range(parts):
+        part_averages[part] = []
+    for img in images:
+        # this may be threaded to speed up the process
+        for part in range(parts):
+            img_slice = [part*part_height, (part+1) * part_height]
+            mean_rgb = get_mean_rgb(img, h=img_slice)
+            part_averages[part].append([mean_rgb[0], mean_rgb[1], mean_rgb[2]])
+
+    ts = pd.DataFrame(part_averages[0])  # time series
+    ts.columns = ['0_red', '0_green', '0_blue']
+
+    for part in range(1, parts):
+        _ = pd.DataFrame(part_averages[part])
+        _.columns = [str(part)+'_red', str(part)+'_green', str(part)+'_blue']
+        ts = pd.concat([ts, _], axis=1)
+
+    ts.insert(0, 'time', ts.index * period)
+    return ts
+
+
 def process_face_video(images, frame_rate):
     """ Takes face mp4, finds ROIs (regions of interest), takes average RGB colors from each ROI, and returns time
     oriented data frames for further processing."""
@@ -88,10 +116,16 @@ def process_face_video(images, frame_rate):
     return ts_left, ts_right
 
 
-def get_mean_rgb(img):
-    mean_red = img[:, :, 0].mean()
-    mean_green = img[:, :, 1].mean()
-    mean_blue = img[:, :, 2].mean()
+def get_mean_rgb(img, h=None, w=None):
+    """ H and w let us choose part of the image. If they are none, entire image is read. """
+    if h is None:
+        h = [0, -1]
+
+    if w is None:
+        w = [0, -1]
+    mean_red = img[h[0]:h[1], w[0]:w[1], 0].mean()
+    mean_green = img[h[0]:h[1], w[0]:w[1], 1].mean()
+    mean_blue = img[h[0]:h[1], w[0]:w[1], 2].mean()
 
     return mean_red, mean_green, mean_blue
 
@@ -125,8 +159,8 @@ def get_roi_images(face_detector, landmark_detector, image):
     draw_points(image, detected_landmarks)
 
     roi_coords = get_roi_coordinates(detected_landmarks)
-    left_roi = image[roi_coords['top']:roi_coords['bottom'],roi_coords['left_1']:roi_coords['left_2']]
-    right_roi = image[roi_coords['top']:roi_coords['bottom'],roi_coords['right_1']:roi_coords['right_2']]
+    left_roi = image[roi_coords['top']:roi_coords['bottom'], roi_coords['left_1']:roi_coords['left_2']]
+    right_roi = image[roi_coords['top']:roi_coords['bottom'], roi_coords['right_1']:roi_coords['right_2']]
     return left_roi, right_roi
 
 
@@ -134,6 +168,6 @@ if __name__ == "__main__":
     directories.change_dir_to_main()
 
     frame_rate = 30
-    images = convert_video_to_images('data/examples/face/BPM72OX97FR30.mp4')
-    ts_left, ts_right = process_face_video(images, 30)
+    images = convert_video_to_images('data/examples/finger/BPM81T20.mp4')
+    process_finger_video_in_parts(images, frame_rate=30, parts=6)
     print(1)

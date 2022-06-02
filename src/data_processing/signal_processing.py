@@ -5,10 +5,11 @@ import image_processing as ip
 
 
 def get_ema(ts):
-    ts['red_ema'] = ts['red'].ewm(span=13).mean()  # Exponential moving average
-    ts['green_ema'] = ts['green'].ewm(span=13).mean()
-    ts['blue_ema'] = ts['blue'].ewm(span=13).mean()
-    return ts
+    """ Exponential moving average. """
+    red_ema = ts['red'].ewm(span=13).mean()  # Exponential moving average
+    green_ema = ts['green'].ewm(span=13).mean()
+    blue_ema = ts['blue'].ewm(span=13).mean()
+    return red_ema, green_ema, blue_ema
 
 
 def plot_timeseries(ts, *cols):
@@ -173,7 +174,7 @@ def plot_spectrogram(ts, frame_rate):
     import matplotlib.pyplot as plt
     from scipy.fft import fftshift
 
-    f, t, Sxx = signal.spectrogram(np.array(ts['green']), frame_rate, return_onesided=True)
+    f, t, Sxx = signal.spectrogram(np.array(ts['blue']), frame_rate, return_onesided=True)
     plt.pcolormesh(t, fftshift(f), fftshift(Sxx, axes=0), shading='gouraud')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
@@ -196,9 +197,9 @@ if __name__ == "__main__":
     images = ip.convert_video_to_images('data/examples/finger/BPM81T20.mp4')
     ts = ip.process_finger_video(images, frame_rate)
 
-    ts_r, ts_g, ts_b = get_fft(ts, frame_rate, plot=True)
-
-    get_rfft(ts, frame_rate)
+    # ts_r, ts_g, ts_b = get_fft(ts, frame_rate, plot=True)
+    #
+    # get_rfft(ts, frame_rate)
     plot_spectrogram(ts, frame_rate)
     plot_periodogram(ts, frame_rate)
     print(1)
