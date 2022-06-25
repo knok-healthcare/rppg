@@ -104,19 +104,68 @@ def get_fft(ts, frame_rate, plot=True):
     return cut_signal_r, cut_signal_g, cut_signal_b
 
 
-def filter_fft(ts_fft, freq_bottom, freq_top):
-    return ts_fft
-
-
-def get_ifft(fft_df, filter_bot=0, filter_top=10000, plot=True):
-    pass
-
-
 def get_rfft(ts, frame_rate, parts=1, plot=True):
     from scipy.fftpack import rfft, irfft, fftfreq
 
-    max_heartrate = 180
-    min_heartrate = 40
+    max_heartrate = 500
+    min_heartrate = 10
+
+    # Number of sample points
+    N = ts.shape[0]
+    # sample spacing
+    T = 1.0 / frame_rate
+    W = fftfreq(N, d=T)
+    W_disp = W[np.where(W == 0)[0][0]:np.where(W == 10)[0][0]]
+
+    if parts == 1:
+        output = {}
+        for color in ['red', 'green', 'blue']:
+            # If our original signal time was in seconds, this is now in Hz
+            f_signal = rfft(np.array(ts[color]))
+            cut_f_signal = f_signal.copy()
+            # cut_f_signal[(W < min_heartrate / 60) | (W > max_heartrate / 60)] = 0
+            output[color] = irfft(cut_f_signal)
+            if plot:
+                plt.plot(W, cut_f_signal)
+                plt.grid()
+                plt.show()
+
+                plt.plot(ts['time'], output[color])
+                plt.grid()
+                plt.show()
+
+        return output['red'], output['green'], output['blue']
+
+    else:
+        output = {}
+        for color in ['red', 'green', 'blue']:
+            output[color] = {}
+            for part in range(parts):
+
+                # If our original signal time was in seconds, this is now in Hz
+                f_signal = rfft(np.array(ts[str(part) + '_' + color]))
+                cut_f_signal = f_signal.copy()
+                cut_f_signal[(W < min_heartrate / 60) | (W > max_heartrate / 60)] = 0
+
+                output[color][str(part)] = irfft(cut_f_signal)
+                if plot:
+                    plt.plot(W, cut_f_signal)
+                    plt.grid()
+                    plt.show()
+
+                    plt.plot(ts['time'], output[color][str(part)])
+                    plt.plot(ts['time'], ts[str(part) + '_' + color])
+                    plt.grid()
+                    plt.show()
+
+        return output['red'], output['green'], output['blue']
+
+
+def get_rfft_for_models(ts, frame_rate, parts=1):
+    from scipy.fftpack import rfft, fftfreq
+
+    max_heartrate = 500
+    min_heartrate = 10
 
     # Number of sample points
     N = ts.shape[0]
@@ -131,37 +180,25 @@ def get_rfft(ts, frame_rate, parts=1, plot=True):
             f_signal = rfft(np.array(ts[color]))
             cut_f_signal = f_signal.copy()
             cut_f_signal[(W < min_heartrate / 60) | (W > max_heartrate / 60)] = 0
-            output[color] = irfft(cut_f_signal)
-            if plot:
-                plt.plot(W, cut_f_signal)
-                plt.grid()
-                plt.show()
+            output[color] = cut_f_signal[np.where(W==0)[0][0]:np.where(W==10)[0][0]]
 
-                plt.plot(ts['time'], output[color])
-                plt.grid()
-                plt.show()
+        return pd.DataFrame(output)
 
-        return output['red'], output['green'], output['blue']
     else:
         output = {}
         for color in ['red', 'green', 'blue']:
+            output[color] = {}
             for part in range(parts):
+
                 # If our original signal time was in seconds, this is now in Hz
-                f_signal = rfft(np.array(ts[str(part) + '0' + color]))
+                f_signal = rfft(np.array(ts[str(part) + '_' + color]))
                 cut_f_signal = f_signal.copy()
                 cut_f_signal[(W < min_heartrate / 60) | (W > max_heartrate / 60)] = 0
-                output[color] = irfft(cut_f_signal)
-                if plot:
-                    plt.plot(W, cut_f_signal)
-                    plt.grid()
-                    plt.show()
 
-                    plt.plot(ts['time'], output[color])
-                    plt.grid()
-                    plt.show()
+                output[color][str(part)] = cut_f_signal[np.where(W==0)[0][0]:np.where(W==10)[0][0]]
 
-        return output['red'], output['green'], output['blue']
 
+        return pd.DataFrame(output)
 
 
 def plot_derivative(ts):
@@ -292,12 +329,20 @@ def plot_cwt_morlet2(ts, frame_rate):
 if __name__ == "__main__":
     directories.change_dir_to_main()
     frame_rate = 30
-    images = ip.convert_video_to_images('data/examples/finger/BPM70T10.mp4')
+    parts = 5
 
-    ts = ip.process_finger_video_in_parts(images, frame_rate=30, parts=5)
+
+    images = ip.convert_video_to_images('data/examples/finger/BPM80T15.mp4')
+
+    ts = ip.process_finger_video_in_parts(images, frame_rate=30, parts=parts)
+
+    red, green, blue = get_rfft(ts, frame_rate, parts=parts, plot=True)
+
+
+
     # calculate_phase_shift(ts['0_blue'], ts['4_blue'])
     # plot_multipart_timeseries(ts)
-    cheby_filter(ts, frame_rate, parts=5)
+    # cheby_filter(ts, frame_rate, parts=5)
     # ts = ip.process_finger_video(images, frame_rate=30)
     # plot_timeseries(ts)
     # plot_cwt_morlet2(ts, frame_rate)
