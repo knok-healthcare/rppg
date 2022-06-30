@@ -1,7 +1,7 @@
 import directories
 from matplotlib import pyplot as plt
 import numpy as np
-import image_processing as ip
+import src.data_processing.image_processing as ip
 import pandas as pd
 
 

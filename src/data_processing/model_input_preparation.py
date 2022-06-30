@@ -1,8 +1,8 @@
 import directories
 import numpy as np
-import image_processing as ip
+import src.data_processing.image_processing as ip
 import pandas as pd
-import signal_processing as sp
+import src.data_processing.signal_processing as sp
 
 
 def prepare_fft_df(input_file, output_dir, frame_rate, parts):

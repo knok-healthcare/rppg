@@ -1,10 +1,13 @@
 from keras.models import Sequential
 from keras.layers import Conv2D
 import directories
-from src.data_processing.model_input_preparation import read_fft_df
+import src.data_processing.model_input_preparation as mip
+import src.data_processing.image_processing as ip
 import tensorflow as tf
 import numpy as np
 from keras.optimizers import RMSprop,SGD,Adam
+from os import listdir
+from os.path import isfile, join
 
 
 def cnn(input, parts):
@@ -12,7 +15,6 @@ def cnn(input, parts):
     # input shape
     colors = 3
     fft_len = 474
-
 
     model = Sequential()
     model = tf.keras.models.Sequential([
@@ -49,6 +51,14 @@ def cnn(input, parts):
 
 if __name__ == "__main__":
     directories.change_dir_to_main()
-    input_dir = 'data/prepared_model_input/fft/BPM80T15'
+    input_dir = 'data/prepared_model_input/fft/'
+    files = [f for f in listdir(input_dir) if isfile(join(input_dir, f))]
 
-    input = read_fft_df(input_dir)
+    X = []
+
+    for file in files:
+        X.append(mip.read_fft_df(input_dir+file))
+
+
+    print(1)
+
