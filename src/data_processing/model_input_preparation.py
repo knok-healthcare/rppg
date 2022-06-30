@@ -17,8 +17,20 @@ def prepare_fft_df(input_file, output_dir, frame_rate, parts):
     output_df.reset_index().to_feather(output_dir + filename)
 
 
-def read_fft_df(input_file, frame_rate, parts):
-    readFrame = pd.read_feather(input_file, columns=None, use_threads=True).drop(columns=['index'])
+def read_fft_df(input_file):
+    df = pd.read_feather(input_file, columns=None, use_threads=True).drop(columns=['index'])
+    arr = convert_fft_df_to_numpy(df)
+
+    return arr
+
+
+def convert_fft_df_to_numpy(df):
+    arrays = []
+    for col in df:
+        arrays.append(np.array(df[col].tolist()))
+    arr = np.dstack(arrays)
+
+    return arr
 
 
 if __name__ == "__main__":
@@ -27,5 +39,6 @@ if __name__ == "__main__":
     parts = 5
     input_file = 'data/examples/finger/BPM80T15.mp4'
     output_dir = 'data/prepared_model_input/fft/'
-    prepare_fft_df(input_file, output_dir, frame_rate, parts)
-    # read_fft_df(output_dir + 'BPM80T15', frame_rate, parts)
+    # prepare_fft_df(input_file, output_dir, frame_rate, parts)
+    df = read_fft_df(output_dir + 'BPM80T15')
+    arr = convert_fft_df_to_numpy(df)
